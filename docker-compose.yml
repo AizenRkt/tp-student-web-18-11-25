@@ -1,0 +1,28 @@
+name: student
+
+services:
+  web:
+    build: .
+    image: custom-php-flight
+    container_name: php_student
+    volumes:
+      - ./src:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: mysql_student
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: student
+      MYSQL_USER: student
+      MYSQL_PASSWORD: student
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./script.sql:/docker-entrypoint-initdb.d/script.sql:ro
+
+volumes:
+  db_data:
