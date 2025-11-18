@@ -2,6 +2,9 @@
 
 //importation de controller
 use app\controllers\Controller;
+use app\controllers\grade\GradeController;
+
+use app\models\grade\GradeModel;
 
 //importation lié flight
 use flight\Engine;
@@ -13,10 +16,6 @@ use flight\net\Router;
  * @var Router $router 
  * @var Engine $app
  */
-/*$router->get('/', function() use ($app) {
-	$Welcome_Controller = new WelcomeController($app);
-	$app->render('welcome', [ 'message' => 'It works!!' ]);
-});*/
 
 $Controller = new Controller();
 $router->get('/', [ $Controller, 'acceuil' ]);
@@ -27,17 +26,22 @@ Flight::route('POST /students', ['app\controllers\student\StudentController', 'c
 Flight::route('DELETE /students/@id', ['app\controllers\student\StudentController', 'delete']);
 
 
-// $router->get('/', \app\controllers\WelcomeController::class.'->home'); 
+Flight::route('GET /grades', [GradeController::class, 'getAll']);
+Flight::route('GET /grades/@id', [GradeController::class, 'getById']);
+Flight::route('GET /grades/student/@idStudent', [GradeController::class, 'getByStudent']);
+Flight::route('GET /grades/studentReg/@registrationNumber', [GradeController::class, 'getByStudentReg']);
+Flight::route('POST /grades', [GradeController::class, 'create']);
+Flight::route('DELETE /grades/@id', [GradeController::class, 'delete']);
 
-// $router->get('/hello-world/@name', function($name) {
-// 	echo '<h1>Hello world! Oh hey '.$name.'!</h1>';
-// });
+// Notes par semestre
+Flight::route('GET /grades/student/@idStudent/semester/@semesterName', function($idStudent, $semesterName) {
+    GradeController::getByStudentSemester($idStudent, $semesterName);
+});
 
-// $router->group('/api', function() use ($router, $app) {
-// 	$Api_Example_Controller = new ApiExampleController($app);
-// 	$router->get('/users', [ $Api_Example_Controller, 'getUsers' ]);
-// 	$router->get('/users/@id:[0-9]', [ $Api_Example_Controller, 'getUser' ]);
-// 	$router->post('/users/@id:[0-9]', [ $Api_Example_Controller, 'updateUser' ]);
-// });
+// Notes par année
+Flight::route('GET /grades/student/@idStudent/year/@yearName', function($idStudent, $yearName) {
+    GradeController::getByStudentYear($idStudent, $yearName);
+});
+
 
 ?>
