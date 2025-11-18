@@ -1,89 +1,111 @@
-CREATE TABLE session_examen (
-    id_session_examen INT PRIMARY KEY,
-    date_session DATE
+-- Exam sessions table
+CREATE TABLE examSession (
+    idExamSession INT PRIMARY KEY AUTO_INCREMENT,
+    sessionDate DATE NOT NULL
 );
 
-CREATE TABLE parcours (
-    id_parcours
-    nom
-)
-
-CREATE TABLE annee (
-    id_annee INT PRIMARY KEY,
-    nom VARCHAR(10)
+-- Study programs table
+CREATE TABLE program (
+    idProgram INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE semestre (
-    id_semestre INT PRIMARY KEY,
-    id_annee INT,
-    nom_semestre VARCHAR(10),
-    annee VARCHAR(10),
-    FOREIGN KEY (id_annee) REFERENCES annee(id_annee)
+-- Academic years table
+CREATE TABLE academicYear (
+    idAcademicYear INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(10) NOT NULL UNIQUE
 );
 
-CREATE TABLE matiere (
-    id_matiere INT PRIMARY KEY,
-    code_matiere VARCHAR(50),
-    nom VARCHAR(100)
+-- Semesters table
+CREATE TABLE semester (
+    idSemester INT PRIMARY KEY AUTO_INCREMENT,
+    idAcademicYear INT NOT NULL,
+    semesterName VARCHAR(10) NOT NULL,
+    FOREIGN KEY (idAcademicYear) REFERENCES academicYear(idAcademicYear) ON DELETE CASCADE
 );
 
-CREATE TABLE type_resultat_matiere (
-    id_type_resultat INT PRIMARY KEY,
-    nom VARCHAR(20),
-    valeur_min INT,
-    valeur_max INT
+-- Subjects table
+CREATE TABLE subject (
+    idSubject INT PRIMARY KEY AUTO_INCREMENT,
+    subjectCode VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE matiere_detail_semestre_annee (
-    id_detail INT PRIMARY KEY,
-    id_matiere INT,
-    id_semestre INT,
-    credit INT,
-    FOREIGN KEY (id_matiere) REFERENCES matiere(id_matiere),
-    FOREIGN KEY (id_semestre) REFERENCES semestre(id_semestre)
+-- Subject result types table
+-- CREATE TABLE subjectResultType (
+--     idSubjectResultType INT PRIMARY KEY AUTO_INCREMENT,
+--     name VARCHAR(20) NOT NULL UNIQUE,
+--     minValue INT NOT NULL,
+--     maxValue INT NOT NULL,
+--     CHECK (minValue <= maxValue)
+-- );
+
+-- Subject details per semester and year table
+CREATE TABLE subjectDetailSemesterYear (
+    idDetail INT PRIMARY KEY AUTO_INCREMENT,
+    idSubject INT NOT NULL,
+    idSemester INT NOT NULL,
+    credits INT NOT NULL CHECK (credits > 0),
+    FOREIGN KEY (idSubject) REFERENCES subject(idSubject) ON DELETE CASCADE,
+    FOREIGN KEY (idSemester) REFERENCES semester(idSemester) ON DELETE CASCADE,
+    UNIQUE (idSubject, idSemester)
 );
 
-CREATE TABLE 
-
-CREATE TABLE etudiant (
-    id_etudiant INT PRIMARY KEY,
-    nom VARCHAR(100),
-    prenoms VARCHAR(150),
-    date_de_naissance DATE,
-    num_inscription VARCHAR(50),
-    prom VARCHAR(10)
+-- Students table
+CREATE TABLE student (
+    idStudent INT PRIMARY KEY AUTO_INCREMENT,
+    lastName VARCHAR(100) NOT NULL,
+    firstNames VARCHAR(150) NOT NULL,
+    birthDate DATE NOT NULL,
+    registrationNumber VARCHAR(50) NOT NULL UNIQUE,
+    promotion VARCHAR(10)
 );
 
-CREATE TABLE etudiant_detail (
-    id_detail INT PRIMARY KEY,
-    id_etudiant INT,
-    id_annee INT,
-    id_semestre INT,
-    date_detail DATE,
-    FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_etudiant),
-    FOREIGN KEY (id_annee) REFERENCES annee(id_annee),
-    FOREIGN KEY (id_semestre) REFERENCES semestre(id_semestre)
+-- Student details per year and semester table
+CREATE TABLE studentDetail (
+    idDetail INT PRIMARY KEY AUTO_INCREMENT,
+    idStudent INT NOT NULL,
+    idAcademicYear INT NOT NULL,
+    idSemester INT NOT NULL,
+    detailDate DATE NOT NULL,
+    FOREIGN KEY (idStudent) REFERENCES student(idStudent) ON DELETE CASCADE,
+    FOREIGN KEY (idAcademicYear) REFERENCES academicYear(idAcademicYear) ON DELETE CASCADE,
+    FOREIGN KEY (idSemester) REFERENCES semester(idSemester) ON DELETE CASCADE,
+    UNIQUE (idStudent, idAcademicYear, idSemester)
 );
 
-CREATE TABLE etudiant_note (
-    id_note INT PRIMARY KEY,
-    id_etudiant INT,
-    id_matiere INT,
-    id_semestre INT,
-    id_session INT,
-    note DECIMAL(5,2),
-    date_note DATE,
-    FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_etudiant),
-    FOREIGN KEY (id_matiere) REFERENCES matiere(id_matiere),
-    FOREIGN KEY (id_semestre) REFERENCES semestre(id_semestre),
-    FOREIGN KEY (id_session) REFERENCES session_examen(id_session_examen)
+-- Student grades table
+CREATE TABLE studentGrade (
+    idGrade INT PRIMARY KEY AUTO_INCREMENT,
+    idStudent INT NOT NULL,
+    idSubject INT NOT NULL,
+    idSemester INT NOT NULL,
+    idExamSession INT NOT NULL,
+    grade DECIMAL(5,2) CHECK (grade >= 0 AND grade <= 20),
+    gradeDate DATE NOT NULL,
+    FOREIGN KEY (idStudent) REFERENCES student(idStudent) ON DELETE CASCADE,
+    FOREIGN KEY (idSubject) REFERENCES subject(idSubject) ON DELETE CASCADE,
+    FOREIGN KEY (idSemester) REFERENCES semester(idSemester) ON DELETE CASCADE,
+    FOREIGN KEY (idExamSession) REFERENCES examSession(idExamSession) ON DELETE CASCADE,
+    UNIQUE (idStudent, idSubject, idExamSession)
 );
 
-CREATE TABLE moyenne (
-    id_moyenne INT PRIMARY KEY,
-    id_etudiant INT,
-    valeur DECIMAL(5,2),
-    id_session INT,
-    FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_etudiant),
-    FOREIGN KEY (id_session) REFERENCES session_examen(id_session_examen)
-);
+-- -- Students averages table
+-- CREATE TABLE studentAverage (
+--     idAverage INT PRIMARY KEY AUTO_INCREMENT,
+--     idStudent INT NOT NULL,
+--     averageValue DECIMAL(5,2) CHECK (averageValue >= 0 AND averageValue <= 20),
+--     idExamSession INT NOT NULL,
+--     FOREIGN KEY (idStudent) REFERENCES student(idStudent) ON DELETE CASCADE,
+--     FOREIGN KEY (idExamSession) REFERENCES examSession(idExamSession) ON DELETE CASCADE,
+--     UNIQUE (idStudent, idExamSession)
+-- );
+
+
+INSERT INTO student (lastName, firstNames, birthDate, registrationNumber, promotion)
+VALUES 
+('Smith', 'John', '2000-05-12', 'STU001', '2025'),
+('Doe', 'Jane', '1999-11-03', 'STU002', '2025'),
+('Brown', 'Michael', '2001-07-21', 'STU003', '2025'),
+('Johnson', 'Emily', '2000-02-14', 'STU004', '2025'),
+('Davis', 'Chris', '1998-09-30', 'STU005', '2025');
