@@ -1,43 +1,85 @@
 <?php
 
-//importation de controller
 use app\controllers\Controller;
+use app\helpers\JWT;
+use Flight;
 
-//importation lié flight
-use flight\Engine;
-use flight\net\Router;
+// --------------------
+// Middleware for /students*
+// --------------------
+Flight::route('/students*', function() {
+    // Try both methods to get Authorization header
+    $headers = getallheaders();
+    // Most reliable way to get the Authorization header
+	if (!isset($_SERVER['HTTP_AUTHORIZATION']) && isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+    $_SERVER['HTTP_AUTHORIZATION'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+}
 
-//use Flight;
+// Also handle cases where it's in a different format (some servers)
+if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    foreach (apache_request_headers() as $key => $value) {
+        if (strcasecmp($key, 'Authorization') === 0) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $value;
+            break;
+        }
+    }
+}
+$auth = $_SERVER['HTTP_AUTHORIZATION'] 
+        ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] 
+        ?? '';
 
-/** 
- * @var Router $router 
- * @var Engine $app
- */
-/*$router->get('/', function() use ($app) {
-	$Welcome_Controller = new WelcomeController($app);
-	$app->render('welcome', [ 'message' => 'It works!!' ]);
-});*/
+    if (!$auth || !str_starts_with($auth, 'Bearer ')) {
+        Flight::json([
+            'status' => 'error',
+            'data' => null,
+            'error' => 'Missing or invalid Authorization header'
+        ], 401);
+        var_dump($auth); exit;
 
+    }
+
+    $token = substr($auth, 7);
+	
+    // Validate token
+    $payload = JWT::validate($token);
+
+    if (!$payload) {
+        Flight::json([
+            'status' => 'error',
+            'data' => null,
+            'error' => 'Token invalid or expired'
+        ], 401);
+        exit;
+    }
+
+    // Store logged-in user for controllers
+    Flight::set('user', $payload);
+});
+
+// --------------------
+// Routes
+// --------------------
 $Controller = new Controller();
-$router->get('/', [ $Controller, 'acceuil' ]);
+Flight::route('GET /', [$Controller, 'acceuil']);
 
+// Authentication
+Flight::route('POST /login', ['app\controllers\AuthController', 'login']);
+
+// Student routes (protected by middleware above)
 Flight::route('GET /students', ['app\controllers\student\StudentController', 'getAll']);
 Flight::route('GET /students/@id', ['app\controllers\student\StudentController', 'getById']);
 Flight::route('POST /students', ['app\controllers\student\StudentController', 'create']);
 Flight::route('DELETE /students/@id', ['app\controllers\student\StudentController', 'delete']);
 
-
-// $router->get('/', \app\controllers\WelcomeController::class.'->home'); 
-
-// $router->get('/hello-world/@name', function($name) {
-// 	echo '<h1>Hello world! Oh hey '.$name.'!</h1>';
+// --------------------
+// Optional example routes
+// --------------------
+// Flight::route('/hello-world/@name', function($name) {
+//     echo '<h1>Hello world! Oh hey '.$name.'!</h1>';
 // });
 
-// $router->group('/api', function() use ($router, $app) {
-// 	$Api_Example_Controller = new ApiExampleController($app);
-// 	$router->get('/users', [ $Api_Example_Controller, 'getUsers' ]);
-// 	$router->get('/users/@id:[0-9]', [ $Api_Example_Controller, 'getUser' ]);
-// 	$router->post('/users/@id:[0-9]', [ $Api_Example_Controller, 'updateUser' ]);
+// Flight::group('/api', function() {
+//     // Example API routes here
 // });
 
 ?>

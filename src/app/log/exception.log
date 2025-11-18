@@ -1,1 +1,2 @@
 [2025-11-18 01-51-42] PDOException: SQLSTATE[HY000] [2002] No such file or directory #2002 in /var/www/html/vendor/flightphp/tracy-extensions/src/debug/database/PdoQueryCapture.php:26  @  http://localhost:8080/  @@  exception--2025-11-18--01-51--3e11025cb6.html
+[2025-11-18 04-40-36] Exception: db must be a mapped method. in /var/www/html/vendor/flightphp/core/flight/Engine.php:122  @  http://localhost:8080/login  @@  exception--2025-11-18--04-40--61add5956a.html

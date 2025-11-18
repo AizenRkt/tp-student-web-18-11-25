@@ -109,3 +109,15 @@ VALUES
 ('Brown', 'Michael', '2001-07-21', 'STU003', '2025'),
 ('Johnson', 'Emily', '2000-02-14', 'STU004', '2025'),
 ('Davis', 'Chris', '1998-09-30', 'STU005', '2025');
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(50) NOT NULL, -- plain text for testing only
+    role VARCHAR(20) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Example user
+INSERT INTO users (username, password, role)
+VALUES ('admin', '1234', 'admin');
