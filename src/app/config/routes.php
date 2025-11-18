@@ -1,10 +1,7 @@
 <?php
 
 //importation de controller
-use app\controllers\AuthController;
 use app\controllers\Controller;
-use app\controllers\EnregistrementController;
-use app\controllers\CrudController;
 
 //importation lié flight
 use flight\Engine;
@@ -23,6 +20,12 @@ use flight\net\Router;
 
 $Controller = new Controller();
 $router->get('/', [ $Controller, 'acceuil' ]);
+
+Flight::route('GET /students', ['app\controllers\student\StudentController', 'getAll']);
+Flight::route('GET /students/@id', ['app\controllers\student\StudentController', 'getById']);
+Flight::route('POST /students', ['app\controllers\student\StudentController', 'create']);
+Flight::route('DELETE /students/@id', ['app\controllers\student\StudentController', 'delete']);
+
 
 // $router->get('/', \app\controllers\WelcomeController::class.'->home'); 
 

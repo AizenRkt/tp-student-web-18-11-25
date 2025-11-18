@@ -90,13 +90,11 @@ CREATE TABLE studentGrade (
     UNIQUE (idStudent, idSubject, idExamSession)
 );
 
--- -- Students averages table
--- CREATE TABLE studentAverage (
---     idAverage INT PRIMARY KEY AUTO_INCREMENT,
---     idStudent INT NOT NULL,
---     averageValue DECIMAL(5,2) CHECK (averageValue >= 0 AND averageValue <= 20),
---     idExamSession INT NOT NULL,
---     FOREIGN KEY (idStudent) REFERENCES student(idStudent) ON DELETE CASCADE,
---     FOREIGN KEY (idExamSession) REFERENCES examSession(idExamSession) ON DELETE CASCADE,
---     UNIQUE (idStudent, idExamSession)
--- );
+CREATE TABLE moyenne (
+    id_moyenne INT PRIMARY KEY,
+    id_etudiant INT,
+    valeur DECIMAL(5,2),
+    id_session INT,
+    FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_etudiant),
+    FOREIGN KEY (id_session) REFERENCES session_examen(id_session_examen)
+);
