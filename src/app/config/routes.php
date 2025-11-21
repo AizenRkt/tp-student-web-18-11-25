@@ -1,40 +1,21 @@
 <?php
-
 use app\controllers\Controller;
 use app\controllers\grade\GradeController;
-
-use app\models\grade\GradeModel;
 use app\helpers\JWT;
 use Flight;
 
-/** 
- * @var Router $router 
- * @var Engine $app
- */
+// --------------------
+// JWT PROTECTION MIDDLEWARE
+// --------------------
+Flight::before('route', function(&$route, &$args) {
+    $path = Flight::request()->url;
 
-// --------------------
-// Middleware for /students*
-// --------------------
-Flight::route('/students*', function() {
-    // Try both methods to get Authorization header
+    // Only /login is public
+    if ($path === '/login') return;
+
+    // Extract Authorization header
     $headers = getallheaders();
-    // Most reliable way to get the Authorization header
-	if (!isset($_SERVER['HTTP_AUTHORIZATION']) && isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-    $_SERVER['HTTP_AUTHORIZATION'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
-}
-
-// Also handle cases where it's in a different format (some servers)
-if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-    foreach (apache_request_headers() as $key => $value) {
-        if (strcasecmp($key, 'Authorization') === 0) {
-            $_SERVER['HTTP_AUTHORIZATION'] = $value;
-            break;
-        }
-    }
-}
-$auth = $_SERVER['HTTP_AUTHORIZATION'] 
-        ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] 
-        ?? '';
+    $auth = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 
     if (!$auth || !str_starts_with($auth, 'Bearer ')) {
         Flight::json([
@@ -42,26 +23,22 @@ $auth = $_SERVER['HTTP_AUTHORIZATION']
             'data' => null,
             'error' => 'Missing or invalid Authorization header'
         ], 401);
-        var_dump($auth); exit;
-
+        Flight::stop(); // stop route execution
     }
 
     $token = substr($auth, 7);
-	
-    // Validate token
-    $payload = JWT::validate($token);
 
-    if (!$payload) {
+    try {
+        $data = JWT::decode($token);
+        Flight::set('user', $data); // make user available in controllers
+    } catch (Exception $e) {
         Flight::json([
             'status' => 'error',
             'data' => null,
-            'error' => 'Token invalid or expired'
+            'error' => 'Invalid token: ' . $e->getMessage()
         ], 401);
-        exit;
+        Flight::stop(); // stop route execution
     }
-
-    // Store logged-in user for controllers
-    Flight::set('user', $payload);
 });
 
 // --------------------
@@ -69,17 +46,15 @@ $auth = $_SERVER['HTTP_AUTHORIZATION']
 // --------------------
 $Controller = new Controller();
 Flight::route('GET /', [$Controller, 'acceuil']);
-
-// Authentication
 Flight::route('POST /login', ['app\controllers\AuthController', 'login']);
 
-// Student routes (protected by middleware above)
+// Student routes
 Flight::route('GET /students', ['app\controllers\student\StudentController', 'getAll']);
 Flight::route('GET /students/@id', ['app\controllers\student\StudentController', 'getById']);
 Flight::route('POST /students', ['app\controllers\student\StudentController', 'create']);
 Flight::route('DELETE /students/@id', ['app\controllers\student\StudentController', 'delete']);
 
-
+// Grade routes
 Flight::route('GET /grades', [GradeController::class, 'getAll']);
 Flight::route('GET /grades/@id', [GradeController::class, 'getById']);
 Flight::route('GET /grades/student/@idStudent', [GradeController::class, 'getByStudent']);
@@ -87,15 +62,22 @@ Flight::route('GET /grades/studentReg/@registrationNumber', [GradeController::cl
 Flight::route('POST /grades', [GradeController::class, 'create']);
 Flight::route('DELETE /grades/@id', [GradeController::class, 'delete']);
 
-// Notes par semestre
+// Notes per semester
 Flight::route('GET /grades/student/@idStudent/semester/@semesterName', function($idStudent, $semesterName) {
     GradeController::getByStudentSemester($idStudent, $semesterName);
 });
 
-// Notes par année
+// Notes per year
 Flight::route('GET /grades/student/@idStudent/year/@yearName', function($idStudent, $yearName) {
     GradeController::getByStudentYear($idStudent, $yearName);
 });
 
-
-?>
+// Debug JWT
+Flight::route('GET /debug-jwt', function() {
+    $headers = getallheaders();
+    $auth = $headers['Authorization'] ?? '';
+    Flight::json([
+        'header' => $auth,
+        'starts_with_bearer' => str_starts_with($auth, 'Bearer ')
+    ]);
+});
