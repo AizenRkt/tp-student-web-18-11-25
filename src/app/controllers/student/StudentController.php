@@ -8,7 +8,6 @@ use Flight;
 
 class StudentController {
 
-    // GET /students
     public static function getAll() {
         try {
             $students = StudentModel::getAll();
@@ -25,8 +24,6 @@ class StudentController {
             ], 500);
         }
     }
-
-    // GET /students/@id
     public static function getById($id) {
         try {
             $student = StudentModel::getById($id);
@@ -51,8 +48,6 @@ class StudentController {
             ], 500);
         }
     }
-
-    // POST /students
     public static function create() {
         try {
             $data = Flight::request()->data->getData();
@@ -71,8 +66,6 @@ class StudentController {
             ], 500);
         }
     }
-
-    // DELETE /students/@id
     public static function delete($id) {
         try {
             $deleted = StudentModel::delete($id);

@@ -22,7 +22,7 @@ services:
       MYSQL_PASSWORD: student
     volumes:
       - db_data:/var/lib/mysql
-      - ./script.sql:/docker-entrypoint-initdb.d/script.sql:ro
+      - ./itu.sql:/docker-entrypoint-initdb.d/itu.sql:ro
 
 volumes:
   db_data:
