@@ -90,11 +90,34 @@ CREATE TABLE studentGrade (
     UNIQUE (idStudent, idSubject, idExamSession)
 );
 
-CREATE TABLE moyenne (
-    id_moyenne INT PRIMARY KEY,
-    id_etudiant INT,
-    valeur DECIMAL(5,2),
-    id_session INT,
-    FOREIGN KEY (id_etudiant) REFERENCES etudiant(id_etudiant),
-    FOREIGN KEY (id_session) REFERENCES session_examen(id_session_examen)
+-- -- Students averages table
+-- CREATE TABLE studentAverage (
+--     idAverage INT PRIMARY KEY AUTO_INCREMENT,
+--     idStudent INT NOT NULL,
+--     averageValue DECIMAL(5,2) CHECK (averageValue >= 0 AND averageValue <= 20),
+--     idExamSession INT NOT NULL,
+--     FOREIGN KEY (idStudent) REFERENCES student(idStudent) ON DELETE CASCADE,
+--     FOREIGN KEY (idExamSession) REFERENCES examSession(idExamSession) ON DELETE CASCADE,
+--     UNIQUE (idStudent, idExamSession)
+-- );
+
+
+INSERT INTO student (lastName, firstNames, birthDate, registrationNumber, promotion)
+VALUES 
+('Smith', 'John', '2000-05-12', 'STU001', '2025'),
+('Doe', 'Jane', '1999-11-03', 'STU002', '2025'),
+('Brown', 'Michael', '2001-07-21', 'STU003', '2025'),
+('Johnson', 'Emily', '2000-02-14', 'STU004', '2025'),
+('Davis', 'Chris', '1998-09-30', 'STU005', '2025');
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(50) NOT NULL, -- plain text for testing only
+    role VARCHAR(20) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Example user
+INSERT INTO users (username, password, role)
+VALUES ('admin', '1234', 'admin');

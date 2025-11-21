@@ -5,6 +5,7 @@ namespace app\controllers\student;
 use app\models\student\StudentModel;
 use Exception;
 use Flight;
+use app\helpers\JWT;
 
 class StudentController {
 
