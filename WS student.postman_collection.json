@@ -1,0 +1,55 @@
+{
+	"info": {
+		"_postman_id": "e21ae301-eae2-4a88-836d-d84c730b4273",
+		"name": "WS student",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49519074",
+		"_collection_link": "https://andypatrick3131-6797386.postman.co/workspace/Andy-Rkt's-Workspace~797d2838-cce6-4b77-8d58-ac0f3f97986d/collection/49519074-e21ae301-eae2-4a88-836d-d84c730b4273?action=share&source=collection_link&creator=49519074"
+	},
+	"item": [
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"1234\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
