@@ -6,7 +6,7 @@ services:
     image: custom-php-flight
     container_name: php_student
     volumes:
-      - ./src:/var/www/html
+      - ./backend/src:/var/www/html
     ports:
       - "8080:80"
     depends_on:
@@ -23,6 +23,17 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./itu.sql:/docker-entrypoint-initdb.d/itu.sql:ro
+  
+  vue:
+    image: vuejs-vuejs:latest
+    container_name: vue_student
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: >
+      sh -c "npm install && npm run dev -- --host"
+    ports:
+      - "5173:5173"
 
 volumes:
   db_data:

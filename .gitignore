@@ -1,0 +1,20 @@
+# Node modules
+frontend/node_modules/
+
+# Logs
+*.log
+
+# Environnement
+.env
+.env.local
+.env.*.local
+
+# Build Vue
+frontend/dist/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
