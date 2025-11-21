@@ -31,15 +31,6 @@ CREATE TABLE subject (
     name VARCHAR(100) NOT NULL
 );
 
--- Subject result types table
--- CREATE TABLE subjectResultType (
---     idSubjectResultType INT PRIMARY KEY AUTO_INCREMENT,
---     name VARCHAR(20) NOT NULL UNIQUE,
---     minValue INT NOT NULL,
---     maxValue INT NOT NULL,
---     CHECK (minValue <= maxValue)
--- );
-
 -- Subject details per semester and year table
 CREATE TABLE subjectDetailSemesterYear (
     idDetail INT PRIMARY KEY AUTO_INCREMENT,
@@ -90,18 +81,6 @@ CREATE TABLE studentGrade (
     UNIQUE (idStudent, idSubject, idExamSession)
 );
 
--- -- Students averages table
--- CREATE TABLE studentAverage (
---     idAverage INT PRIMARY KEY AUTO_INCREMENT,
---     idStudent INT NOT NULL,
---     averageValue DECIMAL(5,2) CHECK (averageValue >= 0 AND averageValue <= 20),
---     idExamSession INT NOT NULL,
---     FOREIGN KEY (idStudent) REFERENCES student(idStudent) ON DELETE CASCADE,
---     FOREIGN KEY (idExamSession) REFERENCES examSession(idExamSession) ON DELETE CASCADE,
---     UNIQUE (idStudent, idExamSession)
--- );
-
-
 INSERT INTO student (lastName, firstNames, birthDate, registrationNumber, promotion)
 VALUES 
 ('Smith', 'John', '2000-05-12', 'STU001', '2025'),
@@ -113,11 +92,45 @@ VALUES
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(50) NOT NULL, -- plain text for testing only
+    password VARCHAR(50) NOT NULL, 
     role VARCHAR(20) DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Example user
 INSERT INTO users (username, password, role)
 VALUES ('admin', '1234', 'admin');
+
+-- vue 
+-- trouver les matières d'un semestre
+CREATE OR REPLACE VIEW semesterSubjects AS
+SELECT 
+    sds.idSemester,
+    sds.idSubject,
+    sub.name AS subjectName,
+    sds.credits
+FROM subjectDetailSemesterYear sds
+JOIN subject sub ON sub.idSubject = sds.idSubject;
+
+-- trouver les notes d'un élève sur ce semestre
+SELECT 
+    ss.idSubject,
+    ss.subjectName,
+    ss.credits,
+    COALESCE(sg.grade, 0) AS grade
+FROM semesterSubjects ss
+LEFT JOIN studentGrade sg 
+    ON sg.idSubject = ss.idSubject
+    AND sg.idSemester = ss.idSemester
+    AND sg.idStudent = 1      
+WHERE ss.idSemester = 1;
+
+-- trouver la moyenne sur un semestre
+SELECT 
+    SUM(COALESCE(sg.grade, 0) * ss.credits) / SUM(ss.credits) AS moyenne_semestre
+FROM semesterSubjects ss
+LEFT JOIN studentGrade sg 
+    ON sg.idSubject = ss.idSubject
+    AND sg.idSemester = ss.idSemester
+    AND sg.idStudent = 1       
+WHERE ss.idSemester = 1;       
+

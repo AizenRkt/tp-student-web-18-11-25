@@ -2,6 +2,7 @@
 
 use app\controllers\Controller;
 use app\controllers\grade\GradeController;
+use app\controllers\semester\SemesterController;
 
 use app\models\grade\GradeModel;
 use app\helpers\JWT;
@@ -11,6 +12,17 @@ use Flight;
  * @var Router $router 
  * @var Engine $app
  */
+
+// === CORS pour autoriser Vue.js ou autres frontends ===
+header("Access-Control-Allow-Origin: *"); // Autoriser toutes les origines (dev)
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+// Répondre aux requêtes OPTIONS (préflight)
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 // --------------------
 // Middleware for /students*
@@ -80,22 +92,26 @@ Flight::route('POST /students', ['app\controllers\student\StudentController', 'c
 Flight::route('DELETE /students/@id', ['app\controllers\student\StudentController', 'delete']);
 
 
-Flight::route('GET /grades', [GradeController::class, 'getAll']);
-Flight::route('GET /grades/@id', [GradeController::class, 'getById']);
-Flight::route('GET /grades/student/@idStudent', [GradeController::class, 'getByStudent']);
-Flight::route('GET /grades/studentReg/@registrationNumber', [GradeController::class, 'getByStudentReg']);
-Flight::route('POST /grades', [GradeController::class, 'create']);
-Flight::route('DELETE /grades/@id', [GradeController::class, 'delete']);
+$gc = new GradeController();
+Flight::route('GET /grades', [$gc, 'getAll']);
+Flight::route('GET /grades/@id', [$gc, 'getById']);
+Flight::route('GET /grades/student/@idStudent', [$gc, 'getByStudent']);
+Flight::route('GET /grades/studentReg/@registrationNumber', [$gc, 'getByStudentReg']);
+Flight::route('POST /grades', [$gc, 'create']);
+Flight::route('DELETE /grades/@id', [$gc, 'delete']);
+Flight::route('GET /students/@idStudent/semester/@idSemester/releve', [$gc, 'getReleve']);
 
-// Notes par semestre
 Flight::route('GET /grades/student/@idStudent/semester/@semesterName', function($idStudent, $semesterName) {
     GradeController::getByStudentSemester($idStudent, $semesterName);
 });
-
-// Notes par année
 Flight::route('GET /grades/student/@idStudent/year/@yearName', function($idStudent, $yearName) {
     GradeController::getByStudentYear($idStudent, $yearName);
 });
 
+$sc = new SemesterController();
+Flight::route('GET /semesters', [$sc, 'getAll']);
+Flight::route('GET /semesters/@idSemester', [$sc, 'getById']);
+Flight::route('GET /semesters/year/@idAcademicYear', [$sc, 'getByYear']);
+Flight::route('GET /students/semester/@idSemester/year/@year', [$sc, 'getBySemesterYear']);
 
 ?>

@@ -134,4 +134,40 @@ class GradeModel {
 
         return $data;
     }
+
+    public static function getReleveNote($idStudent, $idSemester) {
+        try {
+            $sql = "
+                SELECT 
+                    ss.idSubject,
+                    ss.subjectName,
+                    ss.credits,
+                    COALESCE(sg.grade, 0) AS grade
+                FROM semesterSubjects ss
+                LEFT JOIN studentGrade sg 
+                    ON sg.idSubject = ss.idSubject
+                    AND sg.idSemester = ss.idSemester
+                    AND sg.idStudent = :idStudent
+                WHERE ss.idSemester = :idSemester
+            ";
+
+            $stmt = self::getDb()->prepare($sql);
+            $stmt->execute([
+                ':idStudent' => $idStudent,
+                ':idSemester' => $idSemester
+            ]);
+
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!$results) {
+                throw new \Exception("Aucune matière trouvée pour cet étudiant et ce semestre");
+            }
+
+            return $results;
+
+        } catch (\PDOException $e) {
+            throw new \Exception("Erreur lors de la récupération du relevé : " . $e->getMessage());
+        }
+    }
+
 }

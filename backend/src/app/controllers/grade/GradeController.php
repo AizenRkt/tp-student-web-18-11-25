@@ -146,4 +146,35 @@ class GradeController {
         }
     }
 
+    public function getReleve($idStudent, $idSemester) {
+        try {
+            $releve = GradeModel::getReleveNote($idStudent, $idSemester);
+
+            $total = 0;
+            $totalCredits = 0;
+            foreach ($releve as $item) {
+                $total += $item['grade'] * $item['credits'];
+                $totalCredits += $item['credits'];
+            }
+            $moyenne = $totalCredits > 0 ? round($total / $totalCredits, 2) : 0;
+
+            $response = [
+                'status' => 'success',
+                'data' => [
+                    'releve' => $releve,
+                    'moyenne' => $moyenne
+                ]
+            ];
+
+            Flight::json($response);
+
+        } catch (\Exception $e) {
+            Flight::json([
+                'status' => 'error',
+                'data' => null,
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
 }
