@@ -40,6 +40,21 @@ CREATE TABLE subject (
 --     CHECK (minValue <= maxValue)
 -- );
 
+CREATE TABLE subjectProgramGroup(
+    idSubjectProgramGroup INT PRIMARY KEY AUTO_INCREMENT,
+    idProgram INT NOT NULL,
+    FOREIGN KEY (idProgram) REFERENCES program(idProgram) ON DELETE CASCADE
+);
+
+CREATE TABLE subjectProgram(
+    idSubjectProgram INT PRIMARY KEY AUTO_INCREMENT,
+    idSubject INT NOT NULL,
+    idSubjectProgramGroup INT NOT NULL,
+    FOREIGN KEY (idSubject) REFERENCES subject(idSubject) ON DELETE CASCADE,
+    FOREIGN KEY (idSubjectProgramGroup) REFERENCES subjectProgramGroup(idSubjectProgramGroup) ON DELETE CASCADE,
+);
+
+
 -- Subject details per semester and year table
 CREATE TABLE subjectDetailSemesterYear (
     idDetail INT PRIMARY KEY AUTO_INCREMENT,
