@@ -1,4 +1,5 @@
 <?php
+
 use app\controllers\Controller;
 use app\controllers\grade\GradeController;
 use app\controllers\semester\SemesterController;
@@ -7,26 +8,45 @@ use app\models\grade\GradeModel;
 use app\helpers\JWT;
 use Flight;
 
+/** 
+ * @var Router $router 
+ * @var Engine $app
+ */
+
+// === CORS pour autoriser Vue.js ou autres frontends ===
 header("Access-Control-Allow-Origin: *"); // Autoriser toutes les origines (dev)
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 
+// Répondre aux requêtes OPTIONS (préflight)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
 // --------------------
-// JWT PROTECTION MIDDLEWARE
+// Middleware for /students*
 // --------------------
-Flight::before('route', function(&$route, &$args) {
-    $path = Flight::request()->url;
-
-    if ($path === '/login') return;
-
-    // Extract Authorization header
+Flight::route('/students*', function() {
+    // Try both methods to get Authorization header
     $headers = getallheaders();
-    $auth = $headers['Authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    // Most reliable way to get the Authorization header
+	if (!isset($_SERVER['HTTP_AUTHORIZATION']) && isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+    $_SERVER['HTTP_AUTHORIZATION'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+}
+
+// Also handle cases where it's in a different format (some servers)
+if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    foreach (apache_request_headers() as $key => $value) {
+        if (strcasecmp($key, 'Authorization') === 0) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $value;
+            break;
+        }
+    }
+}
+$auth = $_SERVER['HTTP_AUTHORIZATION'] 
+        ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] 
+        ?? '';
 
     if (!$auth || !str_starts_with($auth, 'Bearer ')) {
         Flight::json([
@@ -34,22 +54,26 @@ Flight::before('route', function(&$route, &$args) {
             'data' => null,
             'error' => 'Missing or invalid Authorization header'
         ], 401);
-        Flight::stop(); 
+        var_dump($auth); exit;
+
     }
 
     $token = substr($auth, 7);
+	
+    // Validate token
+    $payload = JWT::validate($token);
 
-    try {
-        $data = JWT::decode($token);
-        Flight::set('user', $data); 
-    } catch (Exception $e) {
+    if (!$payload) {
         Flight::json([
             'status' => 'error',
             'data' => null,
-            'error' => 'Invalid token: ' . $e->getMessage()
+            'error' => 'Token invalid or expired'
         ], 401);
-        Flight::stop(); 
+        exit;
     }
+
+    // Store logged-in user for controllers
+    Flight::set('user', $payload);
 });
 
 // --------------------
@@ -57,9 +81,11 @@ Flight::before('route', function(&$route, &$args) {
 // --------------------
 $Controller = new Controller();
 Flight::route('GET /', [$Controller, 'acceuil']);
+
+// Authentication
 Flight::route('POST /login', ['app\controllers\AuthController', 'login']);
 
-// Student routes
+// Student routes (protected by middleware above)
 Flight::route('GET /students', ['app\controllers\student\StudentController', 'getAll']);
 Flight::route('GET /students/@id', ['app\controllers\student\StudentController', 'getById']);
 Flight::route('POST /students', ['app\controllers\student\StudentController', 'create']);
